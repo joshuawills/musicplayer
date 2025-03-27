@@ -40,6 +40,10 @@ typedef struct {
     int letterCount;
 
     char *currentSongPath;
+
+    Color backgroundColor;
+    Color secondaryColor;
+    int colorIndex;
 } State;
 
 void init_state(State *state);

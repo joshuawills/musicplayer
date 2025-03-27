@@ -9,7 +9,7 @@
 
 void init_balls(State *state);
 void update_balls(State *state);
-void draw_balls();
+void draw_balls(State *state);
 
 void draw_top_bar(State *state);
 void draw_bottom_bar(State *state);

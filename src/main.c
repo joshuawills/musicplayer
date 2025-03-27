@@ -45,13 +45,7 @@ int main(void)
 
         // Check if the song has ended
         if (GetMusicTimePlayed(state.currentSong) + 0.1 >= GetMusicTimeLength(state.currentSong)) {
-            state.songIndex++;
-            if (state.songIndex == state.songCount) {
-                state.songIndex = 0;
-            }
-            UnloadMusicStream(state.currentSong);
-            state.currentSong = LoadMusicStream(state.songs[state.songIndex]->path);
-            PlayMusicStream(state.currentSong);
+            skip_song_forward(&state);
         }
 
         if (state.currPage != ADD_SONG_PAGE) {
@@ -106,8 +100,8 @@ int main(void)
         draw_top_bar(&state);
 
         // Draw the background
-        ClearBackground(BACKGROUND_COLOR);
-        draw_balls();
+        ClearBackground(state.backgroundColor);
+        draw_balls(&state);
 
         #ifdef DEBUG
             DrawFPS(10, 10);

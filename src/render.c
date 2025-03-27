@@ -14,6 +14,36 @@ Ball balls[NUM_BALLS] = {0};
 #define BOTTOM_BAR_HEIGHT 100
 #define SONG_BAR_THICKNESS 25
 #define SONG_BAR_LENGTH 600
+#define NUM_COLOR_COMBINATIONS 10
+
+
+Color background_colors[NUM_COLOR_COMBINATIONS] = {
+    BACKGROUND_COLOR,
+    (Color) { 47, 60, 126, 1},
+    (Color) { 16, 24, 32, 1},
+    (Color) { 249, 97, 103, 1},
+    (Color) { 153, 0, 17, 1},
+    (Color) { 138, 170, 229, 1},
+    (Color) { 44, 95, 45, 1},
+    (Color) { 184, 80, 66, 1},
+    (Color) { 55, 94, 151, 1},
+    (Color) { 42, 49, 50, 1},
+
+};
+
+Color secondary_colors[NUM_COLOR_COMBINATIONS] = {
+    SECONDARY_COLOR,
+    (Color) { 251, 234, 235, 100},
+    (Color) { 254, 231, 21, 100},
+    (Color) { 249, 231, 149, 100},
+    (Color) { 252, 246, 245, 100},
+    (Color) { 255, 255, 255, 100},
+    (Color) { 151, 188, 98, 100},
+    (Color) { 167, 190, 174, 100},
+    (Color) { 251, 101, 66, 100},
+    (Color) { 118, 54, 38, 100},
+
+};
 
 static void draw_play_or_pause_button(State *state);
 
@@ -42,9 +72,9 @@ void update_balls(State *state) {
     }
 }
 
-void draw_balls() {
+void draw_balls(State *state) {
     for (int i = 0; i < NUM_BALLS; i++) {
-        DrawCircleV(balls[i].pos, BALL_RADIUS, SECONDARY_COLOR);
+        DrawCircleV(balls[i].pos, BALL_RADIUS, state->secondaryColor);
     }
 }
 
@@ -127,6 +157,16 @@ void check_pause_button(State *state) {
     }
 }
 
+void update_colors(State *state) {
+    int colorIndex = state->colorIndex;
+    while (colorIndex == state->colorIndex) {
+        colorIndex = GetRandomValue(0, NUM_COLOR_COMBINATIONS - 1);
+    }
+    state->colorIndex = colorIndex;
+    state->backgroundColor = background_colors[colorIndex];
+    state->secondaryColor = secondary_colors[colorIndex];
+}
+
 void skip_song_backward(State *state) {
     state->songIndex--;
     if (state->songIndex < 0) {
@@ -135,6 +175,8 @@ void skip_song_backward(State *state) {
     UnloadMusicStream(state->currentSong);
     state->currentSong = LoadMusicStream(state->songs[state->songIndex]->path);
     PlayMusicStream(state->currentSong);
+
+    update_colors(state);
 }
 
 void check_back_button(State* state) {
@@ -157,6 +199,8 @@ void skip_song_forward(State *state) {
     UnloadMusicStream(state->currentSong);
     state->currentSong = LoadMusicStream(state->songs[state->songIndex]->path);
     PlayMusicStream(state->currentSong);
+
+    update_colors(state);
 }
 
 void check_skip_button(State *state) {
@@ -281,6 +325,7 @@ void check_upload_button_pressed(State *state) {
         state->name_buf[0] = '\0';
         state->letterCount = 0;
         state->currPage = MAIN_PAGE;
+        state->songs = load_songs(state);
     }
 }
 

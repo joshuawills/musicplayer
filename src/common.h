@@ -6,7 +6,7 @@
 #include <iconv.h>
 #include <string.h>
 
-#define DEBUG
+// #define DEBUG
 
 #define MAX_INPUT_CHARS 100 
 

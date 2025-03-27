@@ -15,8 +15,12 @@ void init_state(State *state) {
     state->height = 1080;
     state->name_buf[0] = '\0';
     state->letterCount = 0;
+
+    state->backgroundColor = BACKGROUND_COLOR;
+    state->secondaryColor = SECONDARY_COLOR;
     
     state->currentSongPath = NULL;
+    state->colorIndex = 0;
 }
 
 void free_state(State *state) {
