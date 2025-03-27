@@ -6,4 +6,4 @@ void init_db();
 
 void close_db();
 
-int is_db_setup(); 
+int add_song(char *path, char *title);

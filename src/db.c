@@ -1,32 +1,43 @@
 #include "db.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <mysql.h>
+#include "../include/raylib.h"
+#include <libpq-fe.h>
+#include <stdlib.h>
 
-MYSQL* conn;
+PGconn *conn;
 
 void init_db() {
-    conn = mysql_init(NULL);
-    if (conn == NULL) {
-        fprintf(stderr, "mysql_init() failed\n");
+    conn = PQconnectdb("host=localhost dbname=music_library user=postgres");
+
+    if (PQstatus(conn) != CONNECTION_OK) {
+        fprintf(stderr, "Connection to database failed: %s", PQerrorMessage(conn));
+        PQfinish(conn);
         exit(1);
     }
 
-    // mysql_options(conn, MYSQL_OPT_SSL_MODE, (const char *)SSL_MODE_DISABLED);
-
-    if (mysql_real_connect(conn, "localhost", "root", "Winter@23Winter@23", NULL, 0, NULL, 0) == NULL) {
-        fprintf(stderr, "Connection Failed: %s\n", mysql_error(conn));
-        mysql_close(conn);
-        exit(1);
-    }
-
-    printf("Connection successful\n");
+    #ifdef DEBUG
+        printf("Connected to PostgreSQL successfully!\n");
+    #endif
 }
 
 void close_db() {
-    mysql_close(conn);
+    PQfinish(conn);
 }
 
-int is_db_setup() {
+int add_song(char *path, char *title) {
+    char *query = malloc(1024);
+    sprintf(query, "INSERT INTO songs (absolute_file_path, title) VALUES ('%s', '%s')", path, title);
 
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Failed to add song: %s", PQerrorMessage(conn));
+        PQclear(res);
+        free(query);
+        return 1;
+    }
+
+    PQclear(res);
+    free(query);
+    return 0;
 }
