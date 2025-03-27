@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.x": "x",
+        "background.h": "c"
+    }
+}
