@@ -10,15 +10,15 @@
 int main(void)
 {
 
-    State state = {0};
-    init_state(&state);
-
     #ifdef DEBUG
         printf("Debug mode enabled\n");
     #endif
 
     // Setting up the database
     init_db();
+
+    State state = {0};
+    init_state(&state);
 
     // Generic Setup
     SetRandomSeed(time(NULL));
@@ -32,7 +32,9 @@ int main(void)
     init_balls(&state);
 
     float timePlayed = 0.0f;
-    state.currentSong = LoadMusicStream("resources/letdown.mp3");
+    
+    state.currentSong = LoadMusicStream(state.songs[state.songIndex]->path);
+
     PlayMusicStream(state.currentSong);
     PauseMusicStream(state.currentSong);
     state.pause = true;
@@ -40,6 +42,29 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())
     {
+
+        // Check if the song has ended
+        if (GetMusicTimePlayed(state.currentSong) + 0.1 >= GetMusicTimeLength(state.currentSong)) {
+            state.songIndex++;
+            if (state.songIndex == state.songCount) {
+                state.songIndex = 0;
+            }
+            UnloadMusicStream(state.currentSong);
+            state.currentSong = LoadMusicStream(state.songs[state.songIndex]->path);
+            PlayMusicStream(state.currentSong);
+        }
+
+        if (state.currPage != ADD_SONG_PAGE) {
+            if (IsKeyPressed(KEY_SPACE)) {
+                state.pause = !state.pause;
+            }
+            if (IsKeyPressed(KEY_RIGHT)) {
+                skip_song_forward(&state);
+            }
+            if (IsKeyPressed(KEY_LEFT)) {
+                skip_song_backward(&state);
+            }
+        }
 
         state.width = GetScreenWidth();
         state.height = GetScreenHeight();
@@ -52,18 +77,33 @@ int main(void)
         UpdateMusicStream(state.currentSong);
 
         check_pause_button(&state); 
+        check_skip_button(&state);
+        check_switch_button(&state);
+        check_back_button(&state);
+        check_song_time_switched(&state);
+        if (state.currPage == ADD_SONG_PAGE) {
+            check_song_dragged(&state);
+            check_upload_button_pressed(&state);
+        }
+
         if (state.pause) PauseMusicStream(state.currentSong);
         else ResumeMusicStream(state.currentSong);
 
+
         // Bouncing ball logic
         if (!state.pause) {
-            update_balls();
+            update_balls(&state);
+        }
+
+        if (state.hover) {
+            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+        } else {
+            SetMouseCursor(MOUSE_CURSOR_ARROW);
         }
         
         BeginDrawing();
-
-        // Draw border
-        DrawRectangleLinesEx((Rectangle) { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, 4, LIGHTGRAY);
+        
+        draw_top_bar(&state);
 
         // Draw the background
         ClearBackground(BACKGROUND_COLOR);
@@ -72,11 +112,19 @@ int main(void)
         #ifdef DEBUG
             DrawFPS(10, 10);
             DrawText(TextFormat("Screen Size: [%i, %i]", GetScreenWidth(), GetScreenHeight()), 10, 40, 10, GREEN);
+            DrawText(get_page_from_state(&state), 10, 60, 10, GREEN);  
+            DrawText(TextFormat("Song Index: [%i]", state.songIndex), 10, 80, 10, GREEN);
+            DrawText(TextFormat("Song Duration v Time Elapsed: [%f] v [%f]", GetMusicTimeLength(state.currentSong), GetMusicTimePlayed(state.currentSong)), 10, 100, 10, GREEN);
         #endif
 
         draw_bottom_bar(&state);
 
+        if (state.currPage == ADD_SONG_PAGE) {
+            draw_add_song_page(&state);
+        }
+
         EndDrawing();
+        state.hover = false;
     }
 
     UnloadMusicStream(state.currentSong);

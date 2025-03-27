@@ -24,12 +24,25 @@ typedef struct {
 typedef struct {
     Page currPage;
     int pause;
+    int hover;
+
     Song **songs;
+    int songIndex;
     Music currentSong;
+    int songCount;
+
     Mouse mousePos;
+
     int width;
     int height;
+
+    char name_buf[MAX_INPUT_CHARS + 1];
+    int letterCount;
+
+    char *currentSongPath;
 } State;
 
 void init_state(State *state);
 void free_state(State *state);
+
+char *get_page_from_state(State *state);
